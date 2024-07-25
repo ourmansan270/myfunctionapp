@@ -1,0 +1,30 @@
+name: Azure Functions Deploy
+
+on:
+  push:
+    branches:
+      - dev  # Trigger workflow on push to the dev branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'  # Ensure this matches the version you used locally
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Deploy to Azure Functions
+        uses: azure/functions-action@v1
+        with:
+          app-name: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
+          package: '.'
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
