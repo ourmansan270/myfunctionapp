@@ -1,4 +1,4 @@
-name: Deploy to Azure Functions
+name: Build and Deploy Azure Function App
 
 on:
   push:
@@ -10,27 +10,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '14'
 
-      - name: Install dependencies
-        run: npm install
+    - name: Install dependencies
+      run: npm install
 
-      - name: Build
-        run: npm run build
+    - name: Archive application code
+      run: zip -r temp_web_package.zip .
 
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Upload ZIP file as an artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: function-app-package
+        path: temp_web_package.zip
 
-      - name: Deploy to Azure Functions
-        uses: azure/functions-action@v1
-        with:
-          app-name: 'myHttpTigger'
-          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+    - name: Deploy to Azure Function App
+      uses: azure/functions-action@v1
+      with:
+        app-name: 'myFunctionApp'
+        package: 'temp_web_package.zip'
+        publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
