@@ -1,0 +1,38 @@
+name: Build and Deploy Azure Function App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '14'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Archive application code
+      run: zip -r temp_web_package.zip .
+
+    - name: Upload ZIP file as an artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: function-app-package
+        path: temp_web_package.zip
+
+    - name: Deploy to Azure Function App
+      uses: azure/functions-action@v1
+      with:
+        app-name: 'myFunctionApp'
+        package: 'temp_web_package.zip'
+        publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
